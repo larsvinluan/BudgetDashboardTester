@@ -634,6 +634,51 @@
       z-index: 31;
     }
 
+    /* Bright cyan grid lines for Project Allocation per Quarter only */
+    .allocation-table-scroll {
+      border: 1px solid rgba(52, 223, 255, 0.96);
+      box-shadow:
+        0 0 8px rgba(0, 166, 255, 0.62),
+        inset 0 0 8px rgba(52, 223, 255, 0.10);
+    }
+
+    .allocation-table-scroll table {
+      border: 0;
+      border-radius: 7px;
+      box-shadow: none;
+    }
+
+    .allocation-table-scroll th,
+    .allocation-table-scroll td {
+      border-right: 1px solid rgba(52, 223, 255, 0.88) !important;
+      border-bottom: 1px solid rgba(52, 223, 255, 0.78) !important;
+    }
+
+    .allocation-table-scroll thead th {
+      border-right-color: rgba(74, 229, 255, 1) !important;
+      border-bottom-color: rgba(74, 229, 255, 1) !important;
+      box-shadow:
+        inset -1px 0 0 rgba(127, 239, 255, 0.32),
+        inset 0 -1px 0 rgba(127, 239, 255, 0.38),
+        0 3px 10px rgba(0, 166, 255, 0.34);
+    }
+
+    .allocation-table-scroll tbody td {
+      box-shadow:
+        inset -1px 0 0 rgba(52, 223, 255, 0.08),
+        inset 0 -1px 0 rgba(52, 223, 255, 0.08);
+    }
+
+    .allocation-table-scroll tr > th:last-child,
+    .allocation-table-scroll tr > td:last-child {
+      border-right: 0 !important;
+    }
+
+    .allocation-table-scroll tfoot td {
+      border-top: 1px solid rgba(55, 240, 138, 0.78) !important;
+      border-bottom: 0 !important;
+    }
+
     .expense-filter-bar {
       display: grid;
       grid-template-columns: 1.45fr 1fr 0.7fr 0.8fr minmax(130px, 150px);
