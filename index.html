@@ -2581,13 +2581,6 @@
       const labels = chartRows.map(r => r.project);
       const values = chartRows.map(r => Number(r.approvedBudget || 0));
 
-      const chartPoints = values.map((value, index) => {
-        return {
-          x: index,
-          y: value
-        };
-      });
-
       const canvas = document.getElementById('dailyExpenseChart');
       const ctx = canvas.getContext('2d');
 
@@ -2601,9 +2594,10 @@
       dailyExpenseChart = new Chart(ctx, {
         type: 'line',
         data: {
+          labels: labels,
           datasets: [{
             label: 'Approved Budget per Project',
-            data: chartPoints,
+            data: values,
             borderColor: '#34dfff',
             backgroundColor: gradient,
             pointBackgroundColor: '#ffffff',
@@ -2621,7 +2615,6 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          parsing: false,
           layout: {
             padding: {
               top: 26,
@@ -2641,11 +2634,10 @@
               displayColors: false,
               callbacks: {
                 title: function(context) {
-                  const index = context[0].raw.x;
-                  return labels[index] || '';
+                  return context[0] && context[0].label ? context[0].label : '';
                 },
                 label: function(context) {
-                  return formatPeso(context.raw.y);
+                  return formatPeso(context.parsed.y);
                 }
               }
             }
@@ -2672,9 +2664,8 @@
               }
             },
             x: {
-              type: 'linear',
-              min: -0.35,
-              max: labels.length - 0.65,
+              type: 'category',
+              offset: true,
               border: {
                 display: false
               },
@@ -2682,10 +2673,7 @@
                 display: false
               },
               ticks: {
-                stepSize: 1,
                 autoSkip: false,
-                includeBounds: true,
-                maxTicksLimit: labels.length,
                 color: '#d5e9ff',
                 padding: 12,
                 font: {
@@ -2693,14 +2681,7 @@
                   weight: '800'
                 },
                 maxRotation: 28,
-                minRotation: 28,
-                callback: function(value) {
-                  if (Number.isInteger(value) && labels[value]) {
-                    return labels[value];
-                  }
-
-                  return '';
-                }
+                minRotation: 28
               }
             }
           }
