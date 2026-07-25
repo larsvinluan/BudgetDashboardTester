@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OPSD Budget Summary Dashboard</title>
@@ -474,16 +473,6 @@
       z-index: 2;
     }
 
-    .kpi .logo-badge::after {
-      content: "";
-      position: absolute;
-      inset: 1px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(255,255,255,0.14), transparent 55%);
-      pointer-events: none;
-      z-index: 1;
-    }
-
     .kpi .label {
       margin: 0;
       color: rgba(255,255,255,0.96);
@@ -699,10 +688,127 @@
       border-top: 1px solid rgba(0, 214, 107, 0.38);
     }
 
+    .th-rba-group,
+    .th-actual-group {
+      background: linear-gradient(135deg, #004fc7, #0d86ff) !important;
+      color: #ffffff !important;
+      font-weight: 800;
+    }
+
+    .td-rba-group,
+    .td-actual-group {
+      background: rgba(6, 25, 60, 0.92);
+      color: #f0f7ff !important;
+      font-weight: 400 !important;
+    }
+
+    tr:nth-child(even) .td-rba-group,
+    tr:nth-child(even) .td-actual-group {
+      background: rgba(4, 18, 45, 0.96);
+    }
+
+    tbody tr:hover .td-rba-group,
+    tbody tr:hover .td-actual-group {
+      background: rgba(12, 57, 113, 0.65) !important;
+      color: #f0f7ff !important;
+      font-weight: 400 !important;
+    }
+
+    tfoot .td-rba-group,
+    tfoot .td-actual-group {
+      background: rgba(0, 214, 107, 0.15) !important;
+      color: #ffffff !important;
+      font-weight: 600 !important;
+    }
+
     .allocation-ok { color: #37f08a; font-weight: 800; }
     .allocation-near { color: #ffd84d; font-weight: 800; }
     .allocation-full { color: #38d9ff; font-weight: 800; }
     .allocation-over { color: #ff6b88; font-weight: 800; }
+
+    .utilization-warning {
+      color: #ff4d6d !important;
+      font-weight: 800;
+    }
+
+    .utilization-on-track {
+      color: #37f08a !important;
+      font-weight: 800;
+    }
+
+    .utilization-high {
+      color: #38d9ff !important;
+      font-weight: 800;
+    }
+
+    .utilization-over {
+      color: #ff4d6d !important;
+      font-weight: 800;
+    }
+
+    .catchup-cell {
+      text-align: center;
+      vertical-align: middle;
+      line-height: 1.25;
+    }
+
+    .catchup-upload-button,
+    .catchup-download-button,
+    .catchup-delete-button {
+      border: none;
+      background: transparent;
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      cursor: pointer;
+      padding: 2px 3px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .catchup-upload-button {
+      color: #38d9ff;
+    }
+
+    .catchup-upload-button:hover {
+      color: #ffffff;
+    }
+
+    .catchup-download-button {
+      color: #37f08a;
+    }
+
+    .catchup-delete-button {
+      color: #ff4d6d;
+    }
+
+    .catchup-file-row {
+      margin-bottom: 6px;
+      font-size: 11.5px;
+      color: #f0f7ff;
+      word-break: break-word;
+    }
+
+    .catchup-file-name {
+      display: block;
+      margin-bottom: 2px;
+      font-weight: 400;
+      color: #f0f7ff;
+    }
+
+    .catchup-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .catchup-uploading {
+      color: #ffd84d;
+      font-size: 11.5px;
+      font-weight: 800;
+    }
 
     .view-all-wrap {
       border-top: 1px solid rgba(52, 223, 255, 0.22);
@@ -922,9 +1028,9 @@
               <div class="hero-card-icon">📅</div>
               <div class="hero-card-text">
                 <span>Quarter</span>
-                <strong>
-                  <span class="line">2nd Quarter AY</span>
-                  <span class="line">2026-2027</span>
+                <strong id="quarterDisplay">
+                  <span class="line">Annual / All</span>
+                  <span class="line">Quarters</span>
                 </strong>
               </div>
             </div>
@@ -951,8 +1057,10 @@
       <section class="filters">
         <div class="filter-field">
           <label>Quarter</label>
-          <select class="filter-control">
-            <option>2nd Quarter AY 2026-2027</option>
+          <select id="mainQuarterFilter" class="filter-control">
+            <option value="All">Annual / All Quarters</option>
+            <option value="1st Quarter">1st Quarter</option>
+            <option value="2nd Quarter">2nd Quarter</option>
           </select>
         </div>
 
@@ -967,9 +1075,10 @@
 
         <div class="filter-field">
           <label>Date Range</label>
-          <select class="filter-control">
-            <option>Apr 1, 2026 - Jun 30, 2026</option>
-            <option>Live Data</option>
+          <select id="dateRangeFilter" class="filter-control">
+            <option value="All">Annual / All Quarters</option>
+            <option value="1st Quarter">Jan 1, 2026 - Mar 31, 2026</option>
+            <option value="2nd Quarter">Apr 1, 2026 - Jun 30, 2026</option>
           </select>
         </div>
 
@@ -990,7 +1099,7 @@
         <div>
           <div class="label">Approved Budget</div>
           <div class="value" id="approvedBudget">₱0.00</div>
-          <div class="note"><b>2nd Quarter AY 2026-2027 allocation</b> based on linked sheet</div>
+          <div class="note"><b id="approvedBudgetNote">Annual / All Quarters allocation</b> based on linked sheet</div>
         </div>
       </div>
 
@@ -1056,7 +1165,7 @@
         <div>
           <div class="label">For Attention</div>
           <div class="value" id="attentionCount">0</div>
-          <div class="note">Above 80% utilization threshold</div>
+          <div class="note">Below 50% Utilization</div>
         </div>
       </div>
     </section>
@@ -1071,14 +1180,22 @@
       <table>
         <thead>
           <tr>
-            <th>Project / Program</th>
-            <th>Funding Source</th>
-            <th>Quarter</th>
-            <th>Allocation</th>
-            <th>Used Amount</th>
-            <th>Remaining Balance</th>
-            <th>Utilization %</th>
-            <th>Allocation Status</th>
+            <th rowspan="2">Project / Program</th>
+            <th rowspan="2">Funding Source</th>
+            <th rowspan="2">Quarter</th>
+            <th rowspan="2">Allocation</th>
+            <th colspan="2" class="th-rba-group">Utilization (RBA)</th>
+            <th colspan="2" class="th-actual-group">Utilization (Actual)</th>
+            <th rowspan="2">Utilization %</th>
+            <th rowspan="2">Utilization Status</th>
+            <th rowspan="2">Allocation Status</th>
+            <th rowspan="2">Catch Up Plan</th>
+          </tr>
+          <tr>
+            <th class="th-rba-group">Total RBA Approved</th>
+            <th class="th-rba-group">Balance</th>
+            <th class="th-actual-group">Total OR/DV</th>
+            <th class="th-actual-group">Balance</th>
           </tr>
         </thead>
         <tbody id="allocationTable"></tbody>
@@ -1086,11 +1203,15 @@
           <tr>
             <td>Total</td>
             <td id="allocationTotalFunding">All</td>
-            <td>2nd Quarter</td>
+            <td id="allocationTotalQuarter">All Quarters</td>
             <td id="allocationTotalBudget">₱0.00</td>
-            <td id="allocationTotalUsed">₱0.00</td>
-            <td id="allocationTotalRemaining">₱0.00</td>
+            <td id="allocationTotalRbaApproved" class="td-rba-group">₱0.00</td>
+            <td id="allocationTotalRbaBalance" class="td-rba-group">₱0.00</td>
+            <td id="allocationTotalActualUsed" class="td-actual-group">₱0.00</td>
+            <td id="allocationTotalActualBalance" class="td-actual-group">₱0.00</td>
             <td id="allocationTotalUtilization">0%</td>
+            <td></td>
+            <td></td>
             <td></td>
           </tr>
         </tfoot>
@@ -1174,12 +1295,13 @@
     </section>
 
     <div class="footer">
-      <div>Google Apps Script Web Dashboard • Data source: Linked Google Sheets OPSD HEDF/GAA 2nd Quarter AY 2026-2027</div>
+      <div>Google Apps Script Web Dashboard • Data source: Linked Google Sheets OPSD HEDF/GAA Annual and Quarterly Budget Monitoring</div>
       <div>Designed for executive monitoring and decision-making</div>
     </div>
   </div>
 
   <script>
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyygZYCC4kPlR1E3Mr33E9CV7QX157-04KVJcWaluNo8Scps9KNTri936JsFqpy3bgAlQ/exec';
     const LOGO_FILE_ID = '12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx';
     const MIN_LOADING_TIME = 300;
     const AUTO_REFRESH_INTERVAL_MS = 120000;
@@ -1191,6 +1313,8 @@
     let allExpenseRows = [];
     let allProjects = [];
     let allMonths = [];
+    let currentAllocationRows = [];
+    let catchUpFilesMap = {};
 
     let loadingStartedAt = Date.now();
     let isDashboardLoadedOnce = false;
@@ -1203,12 +1327,31 @@
       '#ffb000',
       '#9b5cff',
       '#ff4d6d',
-      '#22c55e',
-      '#0ea5e9',
       '#f97316',
-      '#60a5fa',
-      '#facc15'
+      '#facc15',
+      '#14b8a6',
+      '#ec4899',
+      '#84cc16',
+      '#06b6d4',
+      '#a855f7',
+      '#fb7185',
+      '#2dd4bf',
+      '#eab308',
+      '#3b82f6',
+      '#f43f5e',
+      '#10b981',
+      '#c084fc',
+      '#f59e0b'
     ];
+
+    function getUniqueChartColor(index) {
+      if (index < chartColors.length) {
+        return chartColors[index];
+      }
+
+      const hue = (index * 47) % 360;
+      return 'hsl(' + hue + ', 85%, 58%)';
+    }
 
     const approvedBudgetValueLabelPlugin = {
       id: 'approvedBudgetValueLabelPlugin',
@@ -1255,8 +1398,73 @@
       }
     }, AUTO_REFRESH_INTERVAL_MS);
 
+    function isWebAppUrlReady() {
+      return WEB_APP_URL &&
+        WEB_APP_URL !== 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_EXEC_URL_HERE' &&
+        WEB_APP_URL.indexOf('/exec') > -1;
+    }
+
+    function buildApiUrl(params) {
+      const query = new URLSearchParams(params);
+      return WEB_APP_URL + '?' + query.toString();
+    }
+
+    async function apiGet(params) {
+      if (!isWebAppUrlReady()) {
+        throw new Error('Please replace WEB_APP_URL with your Apps Script Web App /exec URL.');
+      }
+
+      const response = await fetch(buildApiUrl(params), {
+        method: 'GET'
+      });
+
+      const text = await response.text();
+
+      let result;
+
+      try {
+        result = JSON.parse(text);
+      } catch (err) {
+        throw new Error('Invalid API response. Please check your Web App deployment and /exec URL. Response: ' + text.substring(0, 250));
+      }
+
+      if (!result.success) {
+        throw new Error(result.message || 'API request failed.');
+      }
+
+      return result.data;
+    }
+
+    async function apiPost(payload) {
+      if (!isWebAppUrlReady()) {
+        throw new Error('Please replace WEB_APP_URL with your Apps Script Web App /exec URL.');
+      }
+
+      const response = await fetch(WEB_APP_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      const text = await response.text();
+
+      let result;
+
+      try {
+        result = JSON.parse(text);
+      } catch (err) {
+        throw new Error('Invalid API response. Please check your Web App deployment and /exec URL. Response: ' + text.substring(0, 250));
+      }
+
+      if (!result.success) {
+        throw new Error(result.message || 'API request failed.');
+      }
+
+      return result.data;
+    }
+
     function fitDashboardToScreen() {
       const dashboard = document.getElementById('dashboard');
+
       if (!dashboard) return;
 
       dashboard.style.width = '100%';
@@ -1275,7 +1483,7 @@
       document.body.style.minHeight = '100vh';
     }
 
-    function loadDashboard(forceRefresh) {
+    async function loadDashboard(forceRefresh) {
       if (isDashboardLoading) return;
 
       isDashboardLoading = true;
@@ -1283,6 +1491,7 @@
 
       const loader = document.getElementById('loader');
       const dashboard = document.getElementById('dashboard');
+      const selectedQuarter = getMainQuarterFilterValue();
 
       if (!isDashboardLoadedOnce) {
         loader.style.display = 'grid';
@@ -1294,26 +1503,31 @@
         fitDashboardToScreen();
       }
 
-      google.script.run
-        .withSuccessHandler(function(data) {
-          const elapsed = Date.now() - loadingStartedAt;
-          const waitTime = isDashboardLoadedOnce ? 0 : Math.max(0, MIN_LOADING_TIME - elapsed);
+      try {
+        const data = await apiGet({
+          action: 'dashboard',
+          forceRefresh: forceRefresh === true ? 'true' : 'false',
+          fundingSource: 'All',
+          quarter: selectedQuarter
+        });
 
-          setTimeout(function() {
-            isDashboardLoading = false;
-            isDashboardLoadedOnce = true;
-            setDashboardRefreshState(false);
+        const elapsed = Date.now() - loadingStartedAt;
+        const waitTime = isDashboardLoadedOnce ? 0 : Math.max(0, MIN_LOADING_TIME - elapsed);
 
-            masterDashboardData = data;
-            renderDashboardByFundingSource(getMainFundingSourceFilterValue());
-          }, waitTime);
-        })
-        .withFailureHandler(function(error) {
+        setTimeout(function() {
           isDashboardLoading = false;
+          isDashboardLoadedOnce = true;
           setDashboardRefreshState(false);
-          showError(error);
-        })
-        .getDashboardData(forceRefresh === true, 'All');
+
+          masterDashboardData = data;
+          renderDashboardByFundingSource(getMainFundingSourceFilterValue(), getMainQuarterFilterValue());
+        }, waitTime);
+
+      } catch (error) {
+        isDashboardLoading = false;
+        setDashboardRefreshState(false);
+        showError(error);
+      }
     }
 
     function getLatestDailyRbaTotal(expenseRows) {
@@ -1333,71 +1547,138 @@
         }, 0);
     }
 
-    function buildFilteredDashboardData(sourceValue) {
+    function buildFilteredDashboardData(sourceValue, quarterValue) {
       if (!masterDashboardData) return null;
 
       sourceValue = sourceValue || 'All';
+      quarterValue = quarterValue || 'All';
 
       const sourceLabel = sourceValue === 'HEDF' || sourceValue === 'GAA' ? sourceValue : 'All';
+      const quarterLabel = normalizeQuarterValue(quarterValue);
 
       const originalProjectSummary = masterDashboardData.projectSummary || [];
       const originalExpenseRows = masterDashboardData.expenseRows || [];
 
-      const projectSummary = sourceLabel === 'All'
-        ? originalProjectSummary.slice()
-        : originalProjectSummary.filter(row => row.fundingSource === sourceLabel);
+      catchUpFilesMap = masterDashboardData.catchUpFiles || {};
 
-      const expenseRows = sourceLabel === 'All'
-        ? originalExpenseRows.slice()
-        : originalExpenseRows.filter(row => row.fundingSource === sourceLabel);
+      let projectSummary = originalProjectSummary.filter(row => {
+        const rowFunding = row.fundingSource || 'All';
+        const rowQuarter = normalizeQuarterValue(row.quarter || masterDashboardData.selectedQuarter || '2nd Quarter');
+
+        const matchSource = sourceLabel === 'All' || rowFunding === sourceLabel;
+        const matchQuarter = quarterLabel === 'All' || rowQuarter === quarterLabel;
+
+        return matchSource && matchQuarter;
+      });
+
+      const expenseRows = originalExpenseRows.filter(row => {
+        const rowFunding = row.fundingSource || 'All';
+        const rowQuarter = normalizeQuarterValue(row.quarter || masterDashboardData.selectedQuarter || '2nd Quarter');
+
+        const matchSource = sourceLabel === 'All' || rowFunding === sourceLabel;
+        const matchQuarter = quarterLabel === 'All' || rowQuarter === quarterLabel;
+
+        return matchSource && matchQuarter;
+      });
+
+      if (quarterLabel === 'All') {
+        projectSummary = mergeProjectSummaryForAnnual(projectSummary);
+      }
 
       const approvedBudget = projectSummary.reduce((sum, item) => {
         return sum + Number(item.approvedBudget || 0);
       }, 0);
 
       const totalExpenses = projectSummary.reduce((sum, item) => {
-        return sum + Number(item.totalExpenses || 0);
+        const actualAmount = Number(item.totalOrDv || 0);
+        const rbaAmount = Number(item.totalExpenses || 0);
+        return sum + (actualAmount > 0 ? actualAmount : rbaAmount);
       }, 0);
 
       const dailyExpenses = getLatestDailyRbaTotal(expenseRows);
 
       const remainingBalance = projectSummary.reduce((sum, item) => {
-        return sum + Number(item.remainingBudget || 0);
+        const actualBalance = Number(item.actualBalance || 0);
+        const regularBalance = Number(item.remainingBudget || 0);
+        return sum + (actualBalance !== 0 ? actualBalance : regularBalance);
       }, 0);
 
-      const utilizationRate = approvedBudget > 0 ? totalExpenses / approvedBudget : 0;
-
-      const attentionCount = projectSummary.filter(item => {
-        return Number(item.utilization || 0) >= 0.8;
-      }).length;
-
       const allocationRows = projectSummary.map(item => {
-        const utilization = Number(item.utilization || 0);
         const allocation = Number(item.approvedBudget || 0);
-        const usedAmount = Number(item.totalExpenses || 0);
-        const remainingAmount = Number(item.remainingBudget || 0);
+
+        const totalRbaApproved = Number(
+          item.totalRbaApproved !== undefined ? item.totalRbaApproved : item.totalExpenses || 0
+        );
+
+        const rbaBalance = Number(
+          item.rbaBalance !== undefined ? item.rbaBalance : allocation - totalRbaApproved
+        );
+
+        const totalOrDv = Number(
+          item.totalOrDv !== undefined ? item.totalOrDv : 0
+        );
+
+        const actualBalance = Number(
+          item.actualBalance !== undefined ? item.actualBalance : allocation - totalOrDv
+        );
+
+        const utilization = allocation > 0 ? totalOrDv / allocation : 0;
 
         let allocationStatus = 'Within Allocation';
 
-        if (usedAmount > allocation) {
+        if (totalOrDv > allocation) {
           allocationStatus = 'Over Allocation';
-        } else if (allocation > 0 && Math.abs(usedAmount - allocation) < 0.01) {
+        } else if (allocation > 0 && Math.abs(totalOrDv - allocation) < 0.01) {
           allocationStatus = 'Fully Utilized';
         } else if (utilization >= 0.8) {
           allocationStatus = 'Near Limit';
         }
 
+        const quarter = item.quarter || quarterLabel || 'All';
+        const catchUpKey = item.catchUpKey || getCatchUpKey({
+          project: item.project,
+          fundingSource: item.fundingSource || sourceLabel,
+          quarter: quarter
+        });
+
         return {
           project: item.project,
           fundingSource: item.fundingSource || sourceLabel,
-          quarter: item.quarter || '2nd Quarter',
+          quarter: quarter,
           allocation: allocation,
-          usedAmount: usedAmount,
-          remainingBalance: remainingAmount,
+          totalRbaApproved: totalRbaApproved,
+          rbaBalance: rbaBalance,
+          totalOrDv: totalOrDv,
+          actualBalance: actualBalance,
           utilization: utilization,
-          allocationStatus: allocationStatus
+          utilizationStatus: getUtilizationStatus(utilization),
+          allocationStatus: allocationStatus,
+          catchUpKey: catchUpKey,
+          catchUpFiles: item.catchUpFiles || catchUpFilesMap[catchUpKey] || []
         };
       });
+
+      const totalRbaApproved = allocationRows.reduce((sum, item) => {
+        return sum + Number(item.totalRbaApproved || 0);
+      }, 0);
+
+      const totalRbaBalance = allocationRows.reduce((sum, item) => {
+        return sum + Number(item.rbaBalance || 0);
+      }, 0);
+
+      const totalOrDv = allocationRows.reduce((sum, item) => {
+        return sum + Number(item.totalOrDv || 0);
+      }, 0);
+
+      const totalActualBalance = allocationRows.reduce((sum, item) => {
+        return sum + Number(item.actualBalance || 0);
+      }, 0);
+
+      const actualUtilizationRate = approvedBudget > 0 ? totalOrDv / approvedBudget : 0;
+
+      const attentionCount = allocationRows.filter(item => {
+        return Number(item.utilization || 0) < 0.5;
+      }).length;
 
       const projectFilterSet = {};
       const monthFilterMap = {};
@@ -1425,12 +1706,15 @@
 
       return {
         selectedFundingSource: sourceLabel,
+        selectedQuarter: quarterLabel,
         approvedBudget: approvedBudget,
         totalExpenses: totalExpenses,
         totalObligated: totalExpenses,
         dailyExpenses: dailyExpenses,
         remainingBalance: remainingBalance,
-        utilizationRate: utilizationRate,
+        utilizationRate: actualUtilizationRate,
+        actualUtilizationRate: actualUtilizationRate,
+        utilizationStatus: getUtilizationStatus(actualUtilizationRate),
         attentionCount: attentionCount,
         projectSummary: projectSummary,
         allocationRows: allocationRows,
@@ -1438,12 +1722,102 @@
         expenseRows: expenseRows,
         filterProjects: filterProjects,
         filterMonths: filterMonths,
+        totalRbaApproved: totalRbaApproved,
+        totalRbaBalance: totalRbaBalance,
+        totalOrDv: totalOrDv,
+        totalActualBalance: totalActualBalance,
+        catchUpFiles: catchUpFilesMap,
         lastUpdated: masterDashboardData.lastUpdated
       };
     }
 
-    function renderDashboardByFundingSource(sourceValue) {
-      const filteredData = buildFilteredDashboardData(sourceValue);
+    function mergeProjectSummaryForAnnual(rows) {
+      const map = {};
+      const order = [];
+
+      rows.forEach(row => {
+        const project = row.project || '';
+        const fundingSource = row.fundingSource || 'All';
+        const key = fundingSource + '|' + project;
+
+        if (!map[key]) {
+          map[key] = {
+            project: project,
+            fundingSource: fundingSource,
+            quarter: '',
+            quarterSet: {},
+            approvedBudget: 0,
+            totalRbaApproved: 0,
+            rbaBalance: 0,
+            totalOrDv: 0,
+            actualBalance: 0,
+            totalExpenses: 0,
+            dailyExpense: 0,
+            remainingBudget: 0,
+            catchUpFiles: []
+          };
+
+          order.push(key);
+        }
+
+        const quarter = normalizeQuarterValue(row.quarter || '');
+        if (quarter !== 'All') {
+          map[key].quarterSet[quarter] = true;
+        }
+
+        map[key].approvedBudget += Number(row.approvedBudget || 0);
+        map[key].totalRbaApproved += Number(row.totalRbaApproved || row.totalExpenses || 0);
+        map[key].rbaBalance += Number(row.rbaBalance || 0);
+        map[key].totalOrDv += Number(row.totalOrDv || 0);
+        map[key].actualBalance += Number(row.actualBalance || 0);
+        map[key].totalExpenses += Number(row.totalOrDv || row.totalExpenses || 0);
+        map[key].dailyExpense += Number(row.dailyExpense || 0);
+        map[key].remainingBudget += Number(row.actualBalance || row.remainingBudget || 0);
+
+        const rowKey = row.catchUpKey || getCatchUpKey({
+          project: row.project,
+          fundingSource: row.fundingSource,
+          quarter: row.quarter
+        });
+
+        const rowFiles = row.catchUpFiles || catchUpFilesMap[rowKey] || [];
+        map[key].catchUpFiles = map[key].catchUpFiles.concat(rowFiles);
+      });
+
+      return order.map(key => {
+        const item = map[key];
+        const quarters = Object.keys(item.quarterSet).sort((a, b) => getQuarterOrder(a) - getQuarterOrder(b));
+
+        item.quarter = formatMergedQuarterLabel(quarters);
+        item.catchUpKey = getCatchUpKey({
+          project: item.project,
+          fundingSource: item.fundingSource,
+          quarter: item.quarter
+        });
+
+        const annualFiles = catchUpFilesMap[item.catchUpKey] || [];
+        item.catchUpFiles = item.catchUpFiles.concat(annualFiles);
+
+        return item;
+      });
+    }
+
+    function formatMergedQuarterLabel(quarters) {
+      if (!quarters || !quarters.length) return 'All Quarters';
+
+      const labels = quarters.map(q => {
+        if (q === '1st Quarter') return '1st';
+        if (q === '2nd Quarter') return '2nd';
+        if (q === '3rd Quarter') return '3rd';
+        if (q === '4th Quarter') return '4th';
+        return q.replace(' Quarter', '');
+      });
+
+      return labels.join('/') + ' Quarter';
+    }
+
+    function renderDashboardByFundingSource(sourceValue, quarterValue) {
+      const filteredData = buildFilteredDashboardData(sourceValue, quarterValue);
 
       if (!filteredData) return;
 
@@ -1470,6 +1844,55 @@
       return select ? select.value : 'All';
     }
 
+    function getMainQuarterFilterValue() {
+      const select = document.getElementById('mainQuarterFilter');
+      return select ? select.value : 'All';
+    }
+
+    function normalizeQuarterValue(value) {
+      const text = String(value || 'All').trim();
+
+      if (text === '1st Quarter') return '1st Quarter';
+      if (text === '2nd Quarter') return '2nd Quarter';
+      if (text === '3rd Quarter') return '3rd Quarter';
+      if (text === '4th Quarter') return '4th Quarter';
+
+      return 'All';
+    }
+
+    function getQuarterOrder(quarter) {
+      quarter = normalizeQuarterValue(quarter);
+
+      if (quarter === '1st Quarter') return 1;
+      if (quarter === '2nd Quarter') return 2;
+      if (quarter === '3rd Quarter') return 3;
+      if (quarter === '4th Quarter') return 4;
+
+      return 99;
+    }
+
+    function getQuarterDisplayText(quarterValue) {
+      quarterValue = normalizeQuarterValue(quarterValue);
+
+      if (quarterValue === '1st Quarter') {
+        return '<span class="line">1st Quarter</span><span class="line">AY 2026-2027</span>';
+      }
+
+      if (quarterValue === '2nd Quarter') {
+        return '<span class="line">2nd Quarter</span><span class="line">AY 2026-2027</span>';
+      }
+
+      if (quarterValue === '3rd Quarter') {
+        return '<span class="line">3rd Quarter</span><span class="line">AY 2026-2027</span>';
+      }
+
+      if (quarterValue === '4th Quarter') {
+        return '<span class="line">4th Quarter</span><span class="line">AY 2026-2027</span>';
+      }
+
+      return '<span class="line">Annual / All</span><span class="line">Quarters</span>';
+    }
+
     function updateCoverageText(selectedFundingSource) {
       const coverageText = document.getElementById('coverageText');
 
@@ -1484,21 +1907,63 @@
       }
     }
 
+    function updateQuarterDisplay(selectedQuarter) {
+      const quarterDisplay = document.getElementById('quarterDisplay');
+      const approvedBudgetNote = document.getElementById('approvedBudgetNote');
+      const dateRangeFilter = document.getElementById('dateRangeFilter');
+
+      selectedQuarter = normalizeQuarterValue(selectedQuarter);
+
+      if (quarterDisplay) {
+        quarterDisplay.innerHTML = getQuarterDisplayText(selectedQuarter);
+      }
+
+      if (approvedBudgetNote) {
+        approvedBudgetNote.textContent = selectedQuarter === 'All'
+          ? 'Annual / All Quarters allocation'
+          : selectedQuarter + ' allocation';
+      }
+
+      if (dateRangeFilter && dateRangeFilter.value !== selectedQuarter) {
+        dateRangeFilter.value = selectedQuarter;
+      }
+    }
+
     function bindMainFilters() {
+      const mainQuarterFilter = document.getElementById('mainQuarterFilter');
       const mainFundingSourceFilter = document.getElementById('mainFundingSourceFilter');
+      const dateRangeFilter = document.getElementById('dateRangeFilter');
       const mainFilterButton = document.querySelector('.filter-button');
+
+      if (mainQuarterFilter) {
+        mainQuarterFilter.onchange = function() {
+          isViewingAllData = false;
+          updateQuarterDisplay(getMainQuarterFilterValue());
+          loadDashboard(false);
+        };
+      }
+
+      if (dateRangeFilter) {
+        dateRangeFilter.onchange = function() {
+          const quarter = dateRangeFilter.value;
+          if (mainQuarterFilter) mainQuarterFilter.value = quarter;
+          isViewingAllData = false;
+          updateQuarterDisplay(quarter);
+          loadDashboard(false);
+        };
+      }
 
       if (mainFundingSourceFilter) {
         mainFundingSourceFilter.onchange = function() {
           isViewingAllData = false;
-          renderDashboardByFundingSource(getMainFundingSourceFilterValue());
+          renderDashboardByFundingSource(getMainFundingSourceFilterValue(), getMainQuarterFilterValue());
         };
       }
 
       if (mainFilterButton) {
         mainFilterButton.onclick = function() {
           isViewingAllData = false;
-          renderDashboardByFundingSource(getMainFundingSourceFilterValue());
+          loadDashboard(true);
         };
       }
     }
@@ -1535,20 +2000,25 @@
       document.getElementById('dailyExpenses').textContent = formatPesoShort(data.dailyExpenses);
       document.getElementById('remainingBalance').textContent = formatPesoShort(data.remainingBalance);
       document.getElementById('attentionCount').textContent = data.attentionCount + ' Projects';
-      document.getElementById('utilizationText').textContent = formatPercent(data.utilizationRate);
+      document.getElementById('utilizationText').textContent = formatPercent(data.actualUtilizationRate || data.utilizationRate);
       document.getElementById('lastUpdated').innerHTML = formatUpdatedDateTime(data.lastUpdated);
 
       updateCoverageText(data.selectedFundingSource || getMainFundingSourceFilterValue());
+      updateQuarterDisplay(data.selectedQuarter || getMainQuarterFilterValue());
 
       document.getElementById('allocationTotalFunding').textContent = data.selectedFundingSource || 'All';
+      document.getElementById('allocationTotalQuarter').textContent = data.selectedQuarter === 'All' ? 'All Quarters' : data.selectedQuarter;
       document.getElementById('allocationTotalBudget').textContent = formatPesoShort(data.approvedBudget);
-      document.getElementById('allocationTotalUsed').textContent = formatPesoShort(data.totalExpenses);
-      document.getElementById('allocationTotalRemaining').textContent = formatPesoShort(data.remainingBalance);
-      document.getElementById('allocationTotalUtilization').textContent = formatPercent(data.utilizationRate);
+      document.getElementById('allocationTotalRbaApproved').textContent = formatPesoShort(data.totalRbaApproved);
+      document.getElementById('allocationTotalRbaBalance').textContent = formatPesoShort(data.totalRbaBalance);
+      document.getElementById('allocationTotalActualUsed').textContent = formatPesoShort(data.totalOrDv);
+      document.getElementById('allocationTotalActualBalance').textContent = formatPesoShort(data.totalActualBalance);
+      document.getElementById('allocationTotalUtilization').textContent = formatPercent(data.actualUtilizationRate);
 
       allExpenseRows = data.expenseRows || [];
       allProjects = data.filterProjects || [];
       allMonths = data.filterMonths || [];
+      catchUpFilesMap = data.catchUpFiles || catchUpFilesMap || {};
 
       resetExpenseFundingFilterForMainSource(data.selectedFundingSource || 'All');
       populateExpenseFilters();
@@ -1663,7 +2133,8 @@
           row.date,
           row.project,
           row.activity,
-          row.fundingSource
+          row.fundingSource,
+          row.quarter
         ].join(' ').toLowerCase();
 
         const monthKey = row.monthKey || '';
@@ -1684,27 +2155,254 @@
       const tbody = document.getElementById('allocationTable');
       tbody.innerHTML = '';
 
+      currentAllocationRows = rows || [];
+
       if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="8">No allocation data found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12">No allocation data found.</td></tr>';
         return;
       }
 
       rows.forEach(row => {
         const statusClass = getAllocationStatusClass(row.allocationStatus);
+        const utilizationStatus = row.utilizationStatus || getUtilizationStatus(row.utilization);
+        const utilizationStatusClass = getUtilizationStatusClass(utilizationStatus);
+        const catchUpKey = row.catchUpKey || getCatchUpKey(row);
+        const files = row.catchUpFiles || catchUpFilesMap[catchUpKey] || [];
 
         const tr = document.createElement('tr');
+
         tr.innerHTML = `
           <td>${escapeHtml(row.project)}</td>
           <td>${escapeHtml(row.fundingSource || 'All')}</td>
           <td>${escapeHtml(row.quarter)}</td>
           <td>${formatPesoShort(row.allocation)}</td>
-          <td>${formatPesoShort(row.usedAmount)}</td>
-          <td>${formatPesoShort(row.remainingBalance)}</td>
+          <td class="td-rba-group">${formatPesoShort(row.totalRbaApproved)}</td>
+          <td class="td-rba-group">${formatPesoShort(row.rbaBalance)}</td>
+          <td class="td-actual-group">${formatPesoShort(row.totalOrDv)}</td>
+          <td class="td-actual-group">${formatPesoShort(row.actualBalance)}</td>
           <td>${formatPercent(row.utilization)}</td>
+          <td><span class="${utilizationStatusClass}">${escapeHtml(utilizationStatus)}</span></td>
           <td><span class="${statusClass}">${escapeHtml(row.allocationStatus)}</span></td>
+          <td class="catchup-cell">${renderCatchUpPlanCell(row, files)}</td>
         `;
+
         tbody.appendChild(tr);
       });
+    }
+
+    function renderCatchUpPlanCell(row, files) {
+      const catchUpKey = row.catchUpKey || getCatchUpKey(row);
+      const safeKey = encodeURIComponent(catchUpKey);
+
+      let html = '';
+
+      if (files && files.length) {
+        files.forEach(file => {
+          const fileName = escapeHtml(file.name || file.fileName || 'Uploaded file');
+          const fileId = escapeHtml(file.id || file.fileId || '');
+          const downloadUrl = escapeHtml(file.downloadUrl || file.url || '#');
+
+          html += `
+            <div class="catchup-file-row">
+              <span class="catchup-file-name">📎 ${fileName}</span>
+              <div class="catchup-actions">
+                <button class="catchup-download-button" type="button" onclick="downloadCatchUpFile('${downloadUrl}')">Download</button>
+                <button class="catchup-delete-button" type="button" onclick="deleteCatchUpFile('${safeKey}', '${fileId}')">Delete</button>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+          <button class="catchup-upload-button" type="button" onclick="chooseCatchUpFile('${safeKey}')">
+            Upload another file
+          </button>
+        `;
+      } else {
+        html = `
+          <button class="catchup-upload-button" type="button" onclick="chooseCatchUpFile('${safeKey}')">
+            Upload file here
+          </button>
+        `;
+      }
+
+      return html;
+    }
+
+    function chooseCatchUpFile(encodedKey) {
+      const catchUpKey = decodeURIComponent(encodedKey);
+      const row = findAllocationRowByCatchUpKey(catchUpKey);
+
+      if (!row) {
+        alert('Project row not found. Please refresh the dashboard and try again.');
+        return;
+      }
+
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.style.display = 'none';
+
+      input.onchange = function() {
+        const file = input.files && input.files[0];
+
+        if (!file) {
+          document.body.removeChild(input);
+          return;
+        }
+
+        uploadCatchUpFile(row, file);
+        document.body.removeChild(input);
+      };
+
+      document.body.appendChild(input);
+      input.click();
+    }
+
+    function uploadCatchUpFile(row, file) {
+      const catchUpKey = row.catchUpKey || getCatchUpKey(row);
+      setCatchUpUploadingState(catchUpKey, true);
+
+      const reader = new FileReader();
+
+      reader.onload = async function(event) {
+        const dataUrl = event.target.result || '';
+        const base64 = String(dataUrl).split(',')[1] || '';
+
+        const payload = {
+          action: 'uploadCatchUpFile',
+          catchUpKey: catchUpKey,
+          project: row.project,
+          fundingSource: row.fundingSource,
+          quarter: row.quarter,
+          fileName: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          base64: base64
+        };
+
+        try {
+          const result = await apiPost(payload);
+
+          setCatchUpUploadingState(catchUpKey, false);
+
+          if (result && result.catchUpFiles) {
+            catchUpFilesMap = result.catchUpFiles;
+          } else if (result && result.files) {
+            catchUpFilesMap[catchUpKey] = result.files;
+          }
+
+          refreshCurrentAllocationRowsWithFiles();
+          renderAllocationTable(currentAllocationRows);
+
+        } catch (error) {
+          setCatchUpUploadingState(catchUpKey, false);
+          alert('Upload failed: ' + (error.message || error));
+          renderAllocationTable(currentAllocationRows);
+        }
+      };
+
+      reader.onerror = function() {
+        setCatchUpUploadingState(catchUpKey, false);
+        alert('Unable to read the selected file.');
+        renderAllocationTable(currentAllocationRows);
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    async function deleteCatchUpFile(encodedKey, fileId) {
+      const catchUpKey = decodeURIComponent(encodedKey);
+
+      if (!fileId) {
+        alert('File ID not found.');
+        return;
+      }
+
+      const confirmDelete = confirm('Delete this uploaded catch-up plan file?');
+
+      if (!confirmDelete) return;
+
+      try {
+        const result = await apiPost({
+          action: 'deleteCatchUpFile',
+          catchUpKey: catchUpKey,
+          fileId: fileId
+        });
+
+        if (result && result.catchUpFiles) {
+          catchUpFilesMap = result.catchUpFiles;
+        } else if (result && result.files) {
+          catchUpFilesMap[catchUpKey] = result.files;
+        }
+
+        refreshCurrentAllocationRowsWithFiles();
+        renderAllocationTable(currentAllocationRows);
+
+      } catch (error) {
+        alert('Delete failed: ' + (error.message || error));
+      }
+    }
+
+    function downloadCatchUpFile(downloadUrl) {
+      if (!downloadUrl || downloadUrl === '#') {
+        alert('Download link not available.');
+        return;
+      }
+
+      window.open(downloadUrl, '_blank');
+    }
+
+    function setCatchUpUploadingState(catchUpKey, isUploading) {
+      catchUpFilesMap[catchUpKey] = catchUpFilesMap[catchUpKey] || [];
+
+      currentAllocationRows = currentAllocationRows.map(row => {
+        const rowKey = row.catchUpKey || getCatchUpKey(row);
+
+        if (rowKey === catchUpKey) {
+          row.isUploadingCatchUpFile = isUploading;
+        }
+
+        return row;
+      });
+
+      const tbody = document.getElementById('allocationTable');
+
+      if (!tbody) return;
+
+      Array.from(tbody.querySelectorAll('.catchup-cell')).forEach(cell => {
+        if (cell.innerHTML.indexOf(encodeURIComponent(catchUpKey)) >= 0 && isUploading) {
+          cell.innerHTML = '<span class="catchup-uploading">Uploading...</span>';
+        }
+      });
+    }
+
+    function refreshCurrentAllocationRowsWithFiles() {
+      currentAllocationRows = currentAllocationRows.map(row => {
+        const key = row.catchUpKey || getCatchUpKey(row);
+        row.catchUpFiles = catchUpFilesMap[key] || row.catchUpFiles || [];
+        row.isUploadingCatchUpFile = false;
+        return row;
+      });
+    }
+
+    function findAllocationRowByCatchUpKey(catchUpKey) {
+      return currentAllocationRows.find(row => {
+        const key = row.catchUpKey || getCatchUpKey(row);
+        return key === catchUpKey;
+      });
+    }
+
+    function getCatchUpKey(row) {
+      return [
+        cleanKeyText(row.fundingSource || 'All'),
+        cleanKeyText(row.quarter || 'All'),
+        cleanKeyText(row.project || '')
+      ].join('|');
+    }
+
+    function cleanKeyText(value) {
+      return String(value || '')
+        .trim()
+        .replace(/\s+/g, ' ');
     }
 
     function getApprovedBudgetChartRows(rows) {
@@ -1807,7 +2505,7 @@
           scales: {
             y: {
               beginAtZero: true,
-              suggestedMax: Math.max(25000000, Math.max.apply(null, values) * 1.25),
+              suggestedMax: Math.max(25000000, (values.length ? Math.max.apply(null, values) : 0) * 1.25),
               border: {
                 display: false
               },
@@ -1849,6 +2547,7 @@
                   if (Number.isInteger(value) && labels[value]) {
                     return labels[value];
                   }
+
                   return '';
                 }
               }
@@ -1874,7 +2573,11 @@
           order.push(projectKey);
         }
 
-        mergedMap[projectKey].remainingBudget += Number(row.remainingBudget || 0);
+        const remainingValue = row.actualBalance !== undefined
+          ? Number(row.actualBalance || 0)
+          : Number(row.remainingBudget || 0);
+
+        mergedMap[projectKey].remainingBudget += remainingValue;
       });
 
       return order.map(key => mergedMap[key]);
@@ -1896,8 +2599,8 @@
           datasets: [{
             label: 'Remaining Budget',
             data: values,
-            backgroundColor: labels.map((_, i) => chartColors[i % chartColors.length]),
-            borderColor: labels.map((_, i) => chartColors[i % chartColors.length]),
+            backgroundColor: labels.map((_, i) => getUniqueChartColor(i)),
+            borderColor: labels.map((_, i) => getUniqueChartColor(i)),
             borderWidth: 1,
             borderRadius: 8,
             barThickness: 20
@@ -1924,14 +2627,18 @@
           scales: {
             x: {
               beginAtZero: true,
-              grid: { color: 'rgba(52, 223, 255, 0.12)' },
+              grid: {
+                color: 'rgba(52, 223, 255, 0.12)'
+              },
               ticks: {
                 color: '#b9d7ff',
                 callback: value => formatPesoShort(value)
               }
             },
             y: {
-              grid: { display: false },
+              grid: {
+                display: false
+              },
               ticks: {
                 color: '#b9d7ff'
               }
@@ -1961,6 +2668,7 @@
 
       visibleRows.forEach(row => {
         const tr = document.createElement('tr');
+
         tr.innerHTML = `
           <td>${escapeHtml(row.date)}</td>
           <td>${escapeHtml(row.project)}</td>
@@ -1970,6 +2678,7 @@
           <td>${formatPeso(row.approvedRBA)}</td>
           <td>${formatPeso(row.balance)}</td>
         `;
+
         tbody.appendChild(tr);
       });
 
@@ -1981,6 +2690,31 @@
           viewAllButton.style.display = 'none';
         }
       }
+    }
+
+    function getUtilizationStatus(value) {
+      value = Number(value || 0);
+
+      if (value > 1) {
+        return 'Over Utilized';
+      }
+
+      if (value >= 0.8) {
+        return 'Utilized';
+      }
+
+      if (value >= 0.5) {
+        return 'On Track';
+      }
+
+      return 'Warning – Immediate Attention';
+    }
+
+    function getUtilizationStatusClass(status) {
+      if (status === 'Over Utilized') return 'utilization-over';
+      if (status === 'Utilized') return 'utilization-high';
+      if (status === 'On Track') return 'utilization-on-track';
+      return 'utilization-warning';
     }
 
     function getAllocationStatusClass(status) {
@@ -2059,8 +2793,8 @@
       document.getElementById('loader').innerHTML = `
         <div style="max-width:780px;background:#061733;padding:25px;border-radius:18px;box-shadow:0 15px 35px rgba(0,0,0,0.35);border:1px solid rgba(255,77,109,0.45);">
           <h2 style="margin-top:0;color:#ff4d6d;">Dashboard Loading Error</h2>
-          <p style="color:#eaf4ff;">Please check Apps Script permission and Google Sheet access.</p>
-          <pre style="white-space:pre-wrap;background:#020b1f;color:#ffffff;padding:14px;border-radius:12px;">${error.message || error}</pre>
+          <p style="color:#eaf4ff;">Please check your Apps Script Web App /exec URL, deployment access, and code.gs API setup.</p>
+          <pre style="white-space:pre-wrap;background:#020b1f;color:#ffffff;padding:14px;border-radius:12px;">${escapeHtml(error.message || error)}</pre>
         </div>
       `;
     }
