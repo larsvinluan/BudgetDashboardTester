@@ -580,6 +580,60 @@
       margin-top: 8px;
     }
 
+    /* Project Allocation per Quarter table only:
+       Excel-style frozen two-row column headings */
+    .allocation-table-scroll {
+      --allocation-header-row-one-height: 44px;
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      max-height: 70vh;
+      overflow-x: auto;
+      overflow-y: auto;
+      border-radius: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(52, 223, 255, 0.72) rgba(2, 12, 32, 0.82);
+    }
+
+    .allocation-table-scroll::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    .allocation-table-scroll::-webkit-scrollbar-track {
+      background: rgba(2, 12, 32, 0.82);
+      border-radius: 999px;
+    }
+
+    .allocation-table-scroll::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #0d86ff, #34dfff);
+      border: 2px solid rgba(2, 12, 32, 0.82);
+      border-radius: 999px;
+    }
+
+    .allocation-table-scroll table {
+      margin: 0;
+      overflow: visible;
+    }
+
+    .allocation-table-scroll thead th {
+      position: sticky;
+      z-index: 30;
+      box-shadow:
+        inset 0 -1px 0 rgba(52, 223, 255, 0.78),
+        0 4px 12px rgba(0, 0, 0, 0.46);
+    }
+
+    .allocation-table-scroll thead tr:first-child th {
+      top: 0;
+      z-index: 32;
+    }
+
+    .allocation-table-scroll thead tr:nth-child(2) th {
+      top: var(--allocation-header-row-one-height);
+      z-index: 31;
+    }
+
     .expense-filter-bar {
       display: grid;
       grid-template-columns: 1.45fr 1fr 0.7fr 0.8fr minmax(130px, 150px);
@@ -753,6 +807,7 @@
     }
 
     .catchup-upload-button,
+    .catchup-view-button,
     .catchup-download-button,
     .catchup-delete-button {
       border: none;
@@ -766,11 +821,13 @@
       text-underline-offset: 3px;
     }
 
-    .catchup-upload-button {
+    .catchup-upload-button,
+    .catchup-view-button {
       color: #38d9ff;
     }
 
-    .catchup-upload-button:hover {
+    .catchup-upload-button:hover,
+    .catchup-view-button:hover {
       color: #ffffff;
     }
 
@@ -1170,13 +1227,14 @@
       </div>
     </section>
 
-    <section class="panel table-panel">
+    <section class="panel table-panel allocation-table-panel">
       <div class="panel-title">
         <div class="logo-badge">▣</div>
         <h2>Project Allocation per Quarter</h2>
         <span class="tag">Budget status</span>
       </div>
 
+      <div id="allocationTableScroll" class="allocation-table-scroll">
       <table>
         <thead>
           <tr>
@@ -1216,6 +1274,7 @@
           </tr>
         </tfoot>
       </table>
+      </div>
     </section>
 
     <section class="grid-main">
@@ -1389,8 +1448,15 @@
     bindMainFilters();
     loadDashboard(false);
 
-    window.addEventListener('resize', fitDashboardToScreen);
-    window.addEventListener('load', fitDashboardToScreen);
+    window.addEventListener('resize', function() {
+      fitDashboardToScreen();
+      updateAllocationStickyHeaderHeight();
+    });
+
+    window.addEventListener('load', function() {
+      fitDashboardToScreen();
+      updateAllocationStickyHeaderHeight();
+    });
 
     setInterval(function() {
       if (!isDashboardLoading) {
@@ -2151,6 +2217,22 @@
       fitDashboardToScreen();
     }
 
+    function updateAllocationStickyHeaderHeight() {
+      const scrollWrap = document.getElementById('allocationTableScroll');
+
+      if (!scrollWrap) return;
+
+      const firstHeaderRow = scrollWrap.querySelector('thead tr:first-child');
+
+      if (!firstHeaderRow) return;
+
+      const rowHeight = Math.ceil(firstHeaderRow.getBoundingClientRect().height);
+
+      if (rowHeight > 0) {
+        scrollWrap.style.setProperty('--allocation-header-row-one-height', rowHeight + 'px');
+      }
+    }
+
     function renderAllocationTable(rows) {
       const tbody = document.getElementById('allocationTable');
       tbody.innerHTML = '';
@@ -2159,6 +2241,7 @@
 
       if (!rows.length) {
         tbody.innerHTML = '<tr><td colspan="12">No allocation data found.</td></tr>';
+        requestAnimationFrame(updateAllocationStickyHeaderHeight);
         return;
       }
 
@@ -2188,24 +2271,28 @@
 
         tbody.appendChild(tr);
       });
+
+      requestAnimationFrame(updateAllocationStickyHeaderHeight);
     }
 
     function renderCatchUpPlanCell(row, files) {
       const catchUpKey = row.catchUpKey || getCatchUpKey(row);
       const safeKey = encodeURIComponent(catchUpKey);
+      const displayFileName = escapeHtml(getCatchUpDisplayName(row));
 
       let html = '';
 
       if (files && files.length) {
         files.forEach(file => {
-          const fileName = escapeHtml(file.name || file.fileName || 'Uploaded file');
           const fileId = escapeHtml(file.id || file.fileId || '');
+          const viewUrl = escapeHtml(file.viewUrl || file.url || '#');
           const downloadUrl = escapeHtml(file.downloadUrl || file.url || '#');
 
           html += `
             <div class="catchup-file-row">
-              <span class="catchup-file-name">📎 ${fileName}</span>
+              <span class="catchup-file-name">📎 ${displayFileName}</span>
               <div class="catchup-actions">
+                <button class="catchup-view-button" type="button" onclick="viewCatchUpFile('${viewUrl}')">View</button>
                 <button class="catchup-download-button" type="button" onclick="downloadCatchUpFile('${downloadUrl}')">Download</button>
                 <button class="catchup-delete-button" type="button" onclick="deleteCatchUpFile('${safeKey}', '${fileId}')">Delete</button>
               </div>
@@ -2227,6 +2314,13 @@
       }
 
       return html;
+    }
+
+    function getCatchUpDisplayName(row) {
+      const project = cleanKeyText(row.project || 'Program');
+      const quarter = cleanKeyText(row.quarter || 'All Quarters');
+
+      return project + ' - ' + quarter;
     }
 
     function chooseCatchUpFile(encodedKey) {
@@ -2340,6 +2434,15 @@
       } catch (error) {
         alert('Delete failed: ' + (error.message || error));
       }
+    }
+
+    function viewCatchUpFile(viewUrl) {
+      if (!viewUrl || viewUrl === '#') {
+        alert('View link not available.');
+        return;
+      }
+
+      window.open(viewUrl, '_blank');
     }
 
     function downloadCatchUpFile(downloadUrl) {
