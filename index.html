@@ -2573,11 +2573,12 @@
     function renderCatchUpPlanCell(row, files) {
       const catchUpKey = row.catchUpKey || getCatchUpKey(row);
       const safeKey = encodeURIComponent(catchUpKey);
+      const uniqueFiles = getUniqueCatchUpFiles(files);
 
       let html = '';
 
-      if (files && files.length) {
-        files.forEach(file => {
+      if (uniqueFiles.length) {
+        uniqueFiles.forEach(file => {
           const displayFileName = escapeHtml(getCatchUpDisplayName(
             file.project || row.project,
             file.quarter || row.quarter
@@ -2616,6 +2617,63 @@
 
     function getCatchUpDisplayName(project, quarter) {
       return cleanKeyText(project || 'Program') + ' - ' + cleanKeyText(quarter || 'All Quarters');
+    }
+
+    function getUniqueCatchUpFiles(files) {
+      const sourceFiles = Array.isArray(files) ? files : [];
+      const seen = {};
+      const uniqueReversed = [];
+
+      // Read newest to oldest so the latest copy is the one shown.
+      for (let index = sourceFiles.length - 1; index >= 0; index--) {
+        const file = sourceFiles[index] || {};
+        const identity = getCatchUpFileIdentity(file);
+
+        if (seen[identity]) continue;
+
+        seen[identity] = true;
+        uniqueReversed.push(file);
+      }
+
+      return uniqueReversed.reverse();
+    }
+
+    function getCatchUpFileIdentity(file) {
+      const contentHash = String(file.contentHash || '').trim().toLowerCase();
+
+      if (contentHash) {
+        return 'hash|' + contentHash;
+      }
+
+      // Legacy uploads did not yet store a content hash. For those records,
+      // use their original filename, MIME type, and size when available.
+      const originalName = String(
+        file.originalName || file.uploadedOriginalName || ''
+      ).trim().toLowerCase();
+
+      const mimeType = String(file.mimeType || '').trim().toLowerCase();
+      const fileSize = Number(file.fileSize || 0);
+
+      if (originalName) {
+        return [
+          'legacy',
+          originalName,
+          mimeType,
+          fileSize > 0 ? String(fileSize) : 'unknown-size'
+        ].join('|');
+      }
+
+      const fileId = String(file.id || file.fileId || '').trim();
+
+      if (fileId) {
+        return 'id|' + fileId;
+      }
+
+      return [
+        'fallback',
+        String(file.name || file.fileName || '').trim().toLowerCase(),
+        mimeType
+      ].join('|');
     }
 
     function chooseCatchUpFile(encodedKey) {
@@ -2665,6 +2723,7 @@
           quarter: row.quarter,
           fileName: file.name,
           mimeType: file.type || 'application/octet-stream',
+          fileSize: Number(file.size || 0),
           base64: base64
         };
 
@@ -2677,6 +2736,10 @@
             catchUpFilesMap = result.catchUpFiles;
           } else if (result && result.files) {
             catchUpFilesMap[catchUpKey] = result.files;
+          }
+
+          if (result && result.duplicate === true) {
+            alert('This same Catch Up Plan file is already uploaded. Only one copy will be shown.');
           }
 
           if (masterDashboardData) {
