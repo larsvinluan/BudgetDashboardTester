@@ -580,8 +580,7 @@
       margin-top: 8px;
     }
 
-    /* Project Allocation per Quarter table only:
-       Excel-style frozen two-row column headings */
+    /* Project Allocation per Quarter only: Excel-style frozen header */
     .allocation-table-scroll {
       --allocation-header-row-one-height: 44px;
       position: relative;
@@ -590,7 +589,11 @@
       max-height: 70vh;
       overflow-x: auto;
       overflow-y: auto;
+      border: 1px solid rgba(52, 223, 255, 0.96);
       border-radius: 8px;
+      box-shadow:
+        0 0 8px rgba(0, 166, 255, 0.62),
+        inset 0 0 8px rgba(52, 223, 255, 0.10);
       scrollbar-width: thin;
       scrollbar-color: rgba(52, 223, 255, 0.72) rgba(2, 12, 32, 0.82);
     }
@@ -614,14 +617,20 @@
     .allocation-table-scroll table {
       margin: 0;
       overflow: visible;
+      border: 0;
+      border-radius: 7px;
+      box-shadow: none;
     }
 
     .allocation-table-scroll thead th {
       position: sticky;
       z-index: 30;
+      border-right: 1px solid rgba(74, 229, 255, 1) !important;
+      border-bottom: 1px solid rgba(74, 229, 255, 1) !important;
       box-shadow:
-        inset 0 -1px 0 rgba(52, 223, 255, 0.78),
-        0 4px 12px rgba(0, 0, 0, 0.46);
+        inset -1px 0 0 rgba(127, 239, 255, 0.32),
+        inset 0 -1px 0 rgba(127, 239, 255, 0.38),
+        0 3px 10px rgba(0, 166, 255, 0.34);
     }
 
     .allocation-table-scroll thead tr:first-child th {
@@ -634,33 +643,10 @@
       z-index: 31;
     }
 
-    /* Bright cyan grid lines for Project Allocation per Quarter only */
-    .allocation-table-scroll {
-      border: 1px solid rgba(52, 223, 255, 0.96);
-      box-shadow:
-        0 0 8px rgba(0, 166, 255, 0.62),
-        inset 0 0 8px rgba(52, 223, 255, 0.10);
-    }
-
-    .allocation-table-scroll table {
-      border: 0;
-      border-radius: 7px;
-      box-shadow: none;
-    }
-
     .allocation-table-scroll th,
     .allocation-table-scroll td {
       border-right: 1px solid rgba(52, 223, 255, 0.88) !important;
       border-bottom: 1px solid rgba(52, 223, 255, 0.78) !important;
-    }
-
-    .allocation-table-scroll thead th {
-      border-right-color: rgba(74, 229, 255, 1) !important;
-      border-bottom-color: rgba(74, 229, 255, 1) !important;
-      box-shadow:
-        inset -1px 0 0 rgba(127, 239, 255, 0.32),
-        inset 0 -1px 0 rgba(127, 239, 255, 0.38),
-        0 3px 10px rgba(0, 166, 255, 0.34);
     }
 
     .allocation-table-scroll tbody td {
@@ -1163,6 +1149,7 @@
             <option value="All">Annual / All Quarters</option>
             <option value="1st Quarter">1st Quarter</option>
             <option value="2nd Quarter">2nd Quarter</option>
+            <option value="3rd Quarter">3rd Quarter</option>
           </select>
         </div>
 
@@ -1181,6 +1168,7 @@
             <option value="All">Annual / All Quarters</option>
             <option value="1st Quarter">Jan 1, 2026 - Mar 31, 2026</option>
             <option value="2nd Quarter">Apr 1, 2026 - Jun 30, 2026</option>
+            <option value="3rd Quarter">Jul 1, 2026 - Sep 30, 2026</option>
           </select>
         </div>
 
@@ -1405,7 +1393,7 @@
   </div>
 
   <script>
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyygZYCC4kPlR1E3Mr33E9CV7QX157-04KVJcWaluNo8Scps9KNTri936JsFqpy3bgAlQ/exec';
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxGQZBXrVjq8Brhd_mgiX6H_MaIRx4ZBQtBJOikVYjzMN1v0ZvtW5xknA-IAp5u0OGM/exec';
     const LOGO_FILE_ID = '12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx';
     const MIN_LOADING_TIME = 300;
     const AUTO_REFRESH_INTERVAL_MS = 120000;
@@ -2323,12 +2311,15 @@
     function renderCatchUpPlanCell(row, files) {
       const catchUpKey = row.catchUpKey || getCatchUpKey(row);
       const safeKey = encodeURIComponent(catchUpKey);
-      const displayFileName = escapeHtml(getCatchUpDisplayName(row));
 
       let html = '';
 
       if (files && files.length) {
         files.forEach(file => {
+          const displayFileName = escapeHtml(getCatchUpDisplayName(
+            file.project || row.project,
+            file.quarter || row.quarter
+          ));
           const fileId = escapeHtml(file.id || file.fileId || '');
           const viewUrl = escapeHtml(file.viewUrl || file.url || '#');
           const downloadUrl = escapeHtml(file.downloadUrl || file.url || '#');
@@ -2361,11 +2352,8 @@
       return html;
     }
 
-    function getCatchUpDisplayName(row) {
-      const project = cleanKeyText(row.project || 'Program');
-      const quarter = cleanKeyText(row.quarter || 'All Quarters');
-
-      return project + ' - ' + quarter;
+    function getCatchUpDisplayName(project, quarter) {
+      return cleanKeyText(project || 'Program') + ' - ' + cleanKeyText(quarter || 'All Quarters');
     }
 
     function chooseCatchUpFile(encodedKey) {
