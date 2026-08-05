@@ -3046,15 +3046,12 @@
       const canvas = document.getElementById('remainingBudgetChart');
       const chartBox = document.getElementById('remainingBudgetChartBox');
       const labelCount = Math.max(labels.length, 1);
+      const labelFontSize = labelCount > 16 ? 8 : (labelCount > 12 ? 9 : 10);
+      const barThickness = labelCount > 16 ? 8 : (labelCount > 12 ? 9 : 11);
 
-      // Give every project its own readable row so Chart.js will not skip names.
-      const chartHeight = Math.max(255, 58 + (labelCount * 27));
-      const availableRowHeight = Math.max(14, (chartHeight - 58) / labelCount);
-      const barThickness = Math.max(10, Math.min(20, Math.floor(availableRowHeight * 0.68)));
-      const labelFontSize = labelCount > 18 ? 9 : (labelCount > 12 ? 10 : 11);
-
+      // Keep the original compact chart height while forcing every project label to appear.
       if (chartBox) {
-        chartBox.style.height = chartHeight + 'px';
+        chartBox.style.height = '255px';
       }
 
       const ctx = canvas.getContext('2d');
@@ -3071,9 +3068,11 @@
             backgroundColor: labels.map((_, i) => getUniqueChartColor(i)),
             borderColor: labels.map((_, i) => getUniqueChartColor(i)),
             borderWidth: 1,
-            borderRadius: 8,
+            borderRadius: 6,
             barThickness: barThickness,
-            maxBarThickness: 20
+            maxBarThickness: 11,
+            categoryPercentage: 1,
+            barPercentage: 0.82
           }]
         },
         options: {
@@ -3082,10 +3081,10 @@
           maintainAspectRatio: false,
           layout: {
             padding: {
-              top: 4,
+              top: 2,
               right: 8,
-              bottom: 2,
-              left: 4
+              bottom: 0,
+              left: 2
             }
           },
           plugins: {
@@ -3118,13 +3117,14 @@
               }
             },
             y: {
+              offset: true,
               grid: {
                 display: false
               },
               ticks: {
                 autoSkip: false,
+                padding: 4,
                 color: '#d5e9ff',
-                padding: 7,
                 font: {
                   size: labelFontSize,
                   weight: '700'
