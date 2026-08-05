@@ -1328,7 +1328,7 @@
           <h2>Remaining Budget per Project</h2>
           <span class="tag">Available balance</span>
         </div>
-        <div class="chart-box">
+        <div id="remainingBudgetChartBox" class="chart-box">
           <canvas id="remainingBudgetChart"></canvas>
         </div>
       </div>
@@ -3043,7 +3043,21 @@
       const labels = chartRows.map(r => r.project);
       const values = chartRows.map(r => Number(r.remainingBudget || 0));
 
-      const ctx = document.getElementById('remainingBudgetChart').getContext('2d');
+      const canvas = document.getElementById('remainingBudgetChart');
+      const chartBox = document.getElementById('remainingBudgetChartBox');
+      const labelCount = Math.max(labels.length, 1);
+
+      // Give every project its own readable row so Chart.js will not skip names.
+      const chartHeight = Math.max(255, 58 + (labelCount * 27));
+      const availableRowHeight = Math.max(14, (chartHeight - 58) / labelCount);
+      const barThickness = Math.max(10, Math.min(20, Math.floor(availableRowHeight * 0.68)));
+      const labelFontSize = labelCount > 18 ? 9 : (labelCount > 12 ? 10 : 11);
+
+      if (chartBox) {
+        chartBox.style.height = chartHeight + 'px';
+      }
+
+      const ctx = canvas.getContext('2d');
 
       if (remainingBudgetChart) remainingBudgetChart.destroy();
 
@@ -3058,13 +3072,22 @@
             borderColor: labels.map((_, i) => getUniqueChartColor(i)),
             borderWidth: 1,
             borderRadius: 8,
-            barThickness: 20
+            barThickness: barThickness,
+            maxBarThickness: 20
           }]
         },
         options: {
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: {
+              top: 4,
+              right: 8,
+              bottom: 2,
+              left: 4
+            }
+          },
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -3087,6 +3110,10 @@
               },
               ticks: {
                 color: '#b9d7ff',
+                font: {
+                  size: 10,
+                  weight: '600'
+                },
                 callback: value => formatPesoShort(value)
               }
             },
@@ -3095,7 +3122,13 @@
                 display: false
               },
               ticks: {
-                color: '#b9d7ff'
+                autoSkip: false,
+                color: '#d5e9ff',
+                padding: 7,
+                font: {
+                  size: labelFontSize,
+                  weight: '700'
+                }
               }
             }
           }
