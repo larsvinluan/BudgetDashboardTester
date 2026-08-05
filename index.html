@@ -1393,26 +1393,16 @@
   </div>
 
   <script>
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyygZYCC4kPlR1E3Mr33E9CV7QX157-04KVJcWaluNo8Scps9KNTri936JsFqpy3bgAlQ/exec';
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxGQZBXrVjq8Brhd_mgiX6H_MaIRx4ZBQtBJOikVYjzMN1v0ZvtW5xknA-IAp5u0OGM/exec';
     const LOGO_FILE_ID = '12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx';
     const MIN_LOADING_TIME = 300;
-
-    // Near-live browser refresh: check the Apps Script API every 30 seconds.
     const AUTO_REFRESH_INTERVAL_MS = 30000;
-
     const BROWSER_CACHE_DB_NAME = 'OPSD_Budget_Dashboard_Cache';
     const BROWSER_CACHE_STORE_NAME = 'quarterData';
     const BROWSER_CACHE_VERSION = 1;
-
-    // Version bump prevents the browser from reusing older cached dashboard data.
-    const BROWSER_CACHE_KEY_PREFIX = 'v6-20260806-live|';
-
-    // Do not rely on a browser copy older than 10 minutes.
-    const BROWSER_CACHE_MAX_STALE_MS = 10 * 60 * 1000;
-
-    // Verify any displayed browser-cached copy against the server immediately.
-    const BACKGROUND_REFRESH_AGE_MS = 1;
-
+    const BROWSER_CACHE_KEY_PREFIX = 'v5-20260806|';
+    const BROWSER_CACHE_MAX_STALE_MS = 24 * 60 * 60 * 1000;
+    const BACKGROUND_REFRESH_AGE_MS = 30 * 1000;
     const PREFETCH_QUARTERS = ['1st Quarter', '2nd Quarter', '3rd Quarter', 'All'];
 
     let dailyExpenseChart;
@@ -1581,6 +1571,7 @@
 
       return result.data;
     }
+
 
     function getBrowserCacheKey(quarter) {
       return BROWSER_CACHE_KEY_PREFIX + normalizeQuarterValue(quarter);
@@ -1957,32 +1948,18 @@
         return sum + Number(item.approvedBudget || 0);
       }, 0);
 
-      /*
-       * A legitimate zero actual value must stay zero.
-       * Only use the legacy fallback when totalOrDv is absent.
-       */
       const totalExpenses = projectSummary.reduce((sum, item) => {
-        const actualAmount =
-          item.totalOrDv !== undefined && item.totalOrDv !== null
-            ? Number(item.totalOrDv || 0)
-            : Number(item.totalExpenses || 0);
-
-        return sum + actualAmount;
+        const actualAmount = Number(item.totalOrDv || 0);
+        const rbaAmount = Number(item.totalExpenses || 0);
+        return sum + (actualAmount > 0 ? actualAmount : rbaAmount);
       }, 0);
 
       const dailyExpenses = getLatestDailyRbaTotal(expenseRows);
 
-      /*
-       * A fully utilized project may correctly have zero actual balance.
-       * Do not replace that zero with a legacy balance value.
-       */
       const remainingBalance = projectSummary.reduce((sum, item) => {
-        const balance =
-          item.actualBalance !== undefined && item.actualBalance !== null
-            ? Number(item.actualBalance || 0)
-            : Number(item.remainingBudget || 0);
-
-        return sum + balance;
+        const actualBalance = Number(item.actualBalance || 0);
+        const regularBalance = Number(item.remainingBudget || 0);
+        return sum + (actualBalance !== 0 ? actualBalance : regularBalance);
       }, 0);
 
       const allocationRows = projectSummary.map(item => {
@@ -2152,24 +2129,9 @@
         map[key].rbaBalance += Number(row.rbaBalance || 0);
         map[key].totalOrDv += Number(row.totalOrDv || 0);
         map[key].actualBalance += Number(row.actualBalance || 0);
-
-        /*
-         * Preserve valid zero actual values during annual merging.
-         * Use legacy fields only when the actual fields are absent.
-         */
-        map[key].totalExpenses += Number(
-          row.totalOrDv !== undefined && row.totalOrDv !== null
-            ? row.totalOrDv
-            : row.totalExpenses || 0
-        );
-
+        map[key].totalExpenses += Number(row.totalOrDv || row.totalExpenses || 0);
         map[key].dailyExpense += Number(row.dailyExpense || 0);
-
-        map[key].remainingBudget += Number(
-          row.actualBalance !== undefined && row.actualBalance !== null
-            ? row.actualBalance
-            : row.remainingBudget || 0
-        );
+        map[key].remainingBudget += Number(row.actualBalance || row.remainingBudget || 0);
 
         const rowKey = row.catchUpKey || getCatchUpKey({
           project: row.project,
