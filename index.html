@@ -1730,6 +1730,151 @@
         flex-direction: column;
       }
     }
+
+
+    /* ============================================================
+       APPROVED UPDATE: Project Allocation per Quarter header only
+       Grouped executive header based on the approved reference.
+       Table body, data, calculations, actions, and other dashboard
+       sections are intentionally unchanged.
+       ============================================================ */
+    .allocation-table-scroll .allocation-executive-head th {
+      color: #ffffff !important;
+      text-align: center;
+      vertical-align: middle;
+      font-family: "Segoe UI", Arial, sans-serif;
+      border-right: 1px solid rgba(117, 211, 255, 0.78) !important;
+      border-bottom: 1px solid rgba(91, 211, 255, 0.92) !important;
+      box-shadow:
+        inset -1px 0 0 rgba(255,255,255,0.08),
+        inset 0 -1px 0 rgba(255,255,255,0.06),
+        0 3px 10px rgba(0, 105, 235, 0.20);
+    }
+
+    .allocation-table-scroll .allocation-group-row th {
+      top: 0;
+      z-index: 34;
+      height: 54px;
+      padding: 8px 10px;
+      background:
+        linear-gradient(180deg, rgba(4, 27, 65, 0.99) 0%, rgba(3, 17, 43, 0.99) 100%) !important;
+      font-size: clamp(12px, 0.86vw, 15px) !important;
+      font-weight: 900 !important;
+      letter-spacing: 0.12px !important;
+      text-transform: uppercase !important;
+      white-space: nowrap;
+    }
+
+    .allocation-table-scroll .allocation-column-row th {
+      top: var(--allocation-header-row-one-height);
+      z-index: 33;
+      height: 106px;
+      padding: 10px 7px 11px;
+      background:
+        linear-gradient(180deg, #096fdc 0%, #075cc7 53%, #074eaf 100%) !important;
+      font-size: clamp(10px, 0.72vw, 12.5px) !important;
+      font-weight: 900 !important;
+      line-height: 1.22;
+      letter-spacing: 0 !important;
+      text-transform: none !important;
+      white-space: normal;
+    }
+
+    .allocation-group-content {
+      width: 100%;
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .allocation-group-icon,
+    .allocation-column-icon {
+      display: block;
+      flex: 0 0 auto;
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.28));
+    }
+
+    .allocation-group-icon {
+      width: 25px;
+      height: 25px;
+      stroke-width: 1.9;
+    }
+
+    .allocation-column-head {
+      min-height: 82px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .allocation-column-head > span {
+      display: block;
+      width: 100%;
+    }
+
+    .allocation-column-icon {
+      width: 28px;
+      height: 28px;
+      stroke-width: 1.75;
+    }
+
+    .allocation-percent-icon {
+      width: 31px;
+      height: 31px;
+    }
+
+    .allocation-table-scroll .allocation-group-row th:first-child {
+      border-top-left-radius: 7px;
+    }
+
+    .allocation-table-scroll .allocation-group-row th:last-child {
+      border-top-right-radius: 7px;
+    }
+
+    @media (max-width: 700px) {
+      .allocation-table-scroll .allocation-group-row th {
+        height: 46px;
+        padding: 6px 6px;
+        font-size: 10px !important;
+      }
+
+      .allocation-group-content {
+        gap: 5px;
+      }
+
+      .allocation-group-icon {
+        width: 18px;
+        height: 18px;
+      }
+
+      .allocation-table-scroll .allocation-column-row th {
+        height: 88px;
+        padding: 7px 5px;
+        font-size: 9px !important;
+      }
+
+      .allocation-column-head {
+        min-height: 68px;
+        gap: 6px;
+      }
+
+      .allocation-column-icon,
+      .allocation-percent-icon {
+        width: 22px;
+        height: 22px;
+      }
+    }
+
   </style>
 </head>
 
@@ -1917,24 +2062,149 @@
 
       <div id="allocationTableScroll" class="allocation-table-scroll">
       <table>
-        <thead>
-          <tr>
-            <th rowspan="2">Project / Program</th>
-            <th rowspan="2">Funding Source</th>
-            <th rowspan="2">Quarter</th>
-            <th rowspan="2">Allocation</th>
-            <th colspan="2" class="th-rba-group">Utilization (RBA)</th>
-            <th colspan="2" class="th-actual-group">Utilization (Actual)</th>
-            <th rowspan="2">Utilization %</th>
-            <th rowspan="2">Utilization Status</th>
-            <th rowspan="2">Allocation Status</th>
-            <th rowspan="2">Catch Up Plan</th>
+        <thead class="allocation-executive-head">
+          <tr class="allocation-group-row">
+            <th colspan="3" class="allocation-group-head">
+              <span class="allocation-group-content">
+                <svg class="allocation-group-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 21V5h10v16M14 10h6v11M7 8h2M7 12h2M7 16h2M11 8h1M11 12h1M11 16h1M17 13h1M17 17h1M2 21h20"/>
+                </svg>
+                <span>Project Information</span>
+              </span>
+            </th>
+            <th colspan="1" class="allocation-group-head">
+              <span class="allocation-group-content">
+                <svg class="allocation-group-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 7c0-2 1.8-3.5 4-3.5S16 5 16 7M7 8h10l2 4v6a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-6l2-4Z"/>
+                  <path d="M12 11v7M10 13h3a1.5 1.5 0 0 0 0-3h-2a1.5 1.5 0 0 0 0 3h2a1.5 1.5 0 0 1 0 3h-3"/>
+                </svg>
+                <span>Budget</span>
+              </span>
+            </th>
+            <th colspan="5" class="allocation-group-head">
+              <span class="allocation-group-content">
+                <svg class="allocation-group-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2v10h10A10 10 0 0 0 12 2Z"/>
+                  <path d="M10 4a9 9 0 1 0 10 10H10V4Z"/>
+                </svg>
+                <span>Utilization</span>
+              </span>
+            </th>
+            <th colspan="3" class="allocation-group-head">
+              <span class="allocation-group-content">
+                <svg class="allocation-group-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 4h6M9 2h6v4H9zM7 4H5v18h14V4h-2"/>
+                  <path d="m8 11 2 2 4-4M8 17h7"/>
+                </svg>
+                <span>Status &amp; Action</span>
+              </span>
+            </th>
           </tr>
-          <tr>
-            <th class="th-rba-group">Total RBA Approved</th>
-            <th class="th-rba-group">Balance</th>
-            <th class="th-actual-group">Total OR/DV</th>
-            <th class="th-actual-group">Balance</th>
+          <tr class="allocation-column-row">
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 21V5h10v16M14 10h6v11M7 8h2M7 12h2M7 16h2M11 8h1M11 12h1M11 16h1M17 13h1M17 17h1M2 21h20"/>
+                </svg>
+                <span>Project /<br>Program</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <ellipse cx="12" cy="5" rx="7" ry="3"/>
+                  <path d="M5 5v5c0 1.7 3.1 3 7 3s7-1.3 7-3V5M5 10v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5M5 15v4c0 1.7 3.1 3 7 3s7-1.3 7-3v-4"/>
+                </svg>
+                <span>Funding<br>Source</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="16" rx="2"/>
+                  <path d="M8 3v4M16 3v4M3 10h18M7 14h2M11 14h2M15 14h2M7 18h2M11 18h2"/>
+                </svg>
+                <span>Quarter</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 7c0-2 1.8-3.5 4-3.5S16 5 16 7M7 8h10l2 4v6a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-6l2-4Z"/>
+                  <path d="M12 11v7M10 13h3a1.5 1.5 0 0 0 0-3h-2a1.5 1.5 0 0 0 0 3h2a1.5 1.5 0 0 1 0 3h-3"/>
+                </svg>
+                <span>Approved<br>Allocation</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="5"/>
+                  <path d="m12 2 2 2 3-.5.5 3 2 2-2 2 .5 3-3 .5-2 2-2-2-3 .5-.5-3-2-2 2-2-.5-3 3-.5 2-2Z"/>
+                  <path d="m10 12 1.4 1.4L14.5 10"/>
+                </svg>
+                <span>RBA<br>Approved</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v18M5 7h14M5 7l-3 6h6L5 7ZM19 7l-3 6h6l-3-6ZM8 21h8"/>
+                </svg>
+                <span>RBA<br>Balance</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 2h9l4 4v16H6zM15 2v5h5M9 11h7M9 15h7M9 19h5"/>
+                </svg>
+                <span>Actual<br>OR/DV</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 7h15a3 3 0 0 1 3 3v8H6a3 3 0 0 1-3-3V7Z"/>
+                  <path d="M3 7l11-4v4M16 11h5v4h-5a2 2 0 0 1 0-4Z"/>
+                </svg>
+                <span>Actual<br>Balance</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon allocation-percent-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="7" cy="7" r="3"/><circle cx="17" cy="17" r="3"/><path d="M19 5 5 19"/>
+                </svg>
+                <span>Utilization<br>%</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 20h18M6 17v-5M10 17V9M14 17v-3M18 17V6"/>
+                  <path d="m5 9 4-4 4 3 6-5M16 3h3v3"/>
+                </svg>
+                <span>Utilization<br>Status</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 4h6M9 2h6v4H9zM7 4H5v18h14V4h-2"/>
+                  <path d="m8 11 2 2 4-4M8 17h7"/>
+                </svg>
+                <span>Allocation<br>Status</span>
+              </span>
+            </th>
+            <th>
+              <span class="allocation-column-head">
+                <svg class="allocation-column-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 6h7l2 2h9v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z"/>
+                </svg>
+                <span>Catch-Up Plan /<br>Action</span>
+              </span>
+            </th>
           </tr>
         </thead>
         <tbody id="allocationTable"></tbody>
