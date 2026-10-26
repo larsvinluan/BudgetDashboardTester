@@ -1944,6 +1944,7 @@
             <option value="1st Quarter">1st Quarter</option>
             <option value="2nd Quarter">2nd Quarter</option>
             <option value="3rd Quarter">3rd Quarter</option>
+            <option value="4th Quarter">4th Quarter</option>
           </select>
         </div>
 
@@ -1963,6 +1964,7 @@
             <option value="1st Quarter">Jan 1, 2026 - Mar 31, 2026</option>
             <option value="2nd Quarter">Apr 1, 2026 - Jun 30, 2026</option>
             <option value="3rd Quarter">Jul 1, 2026 - Sep 30, 2026</option>
+            <option value="4th Quarter">Oct 1, 2026 - Dec 31, 2026</option>
           </select>
         </div>
 
@@ -2507,10 +2509,10 @@
     const BROWSER_CACHE_DB_NAME = 'OPSD_Budget_Dashboard_Cache';
     const BROWSER_CACHE_STORE_NAME = 'quarterData';
     const BROWSER_CACHE_VERSION = 1;
-    const BROWSER_CACHE_KEY_PREFIX = 'v7-20260806-catchup-final|';
+    const BROWSER_CACHE_KEY_PREFIX = 'v8-20261026-four-quarters-backend-sync|';
     const BROWSER_CACHE_MAX_STALE_MS = 24 * 60 * 60 * 1000;
     const BACKGROUND_REFRESH_AGE_MS = 30 * 1000;
-    const PREFETCH_QUARTERS = ['1st Quarter', '2nd Quarter', '3rd Quarter', 'All'];
+    const PREFETCH_QUARTERS = ['1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter', 'All'];
 
 
     // ============================================================
@@ -3103,25 +3105,22 @@
         return sum + Number(item.approvedBudget || 0);
       }, 0);
 
+      // Actual expenses are based on OR/DV, never on RBA-approved amounts.
       const totalExpenses = projectSummary.reduce((sum, item) => {
-        const actualAmount = Number(item.totalOrDv || 0);
-        const rbaAmount = Number(item.totalExpenses || 0);
-        return sum + (actualAmount > 0 ? actualAmount : rbaAmount);
+        return sum + Number(item.totalOrDv ?? item.totalExpenses ?? 0);
       }, 0);
 
       const dailyExpenses = getLatestDailyRbaTotal(expenseRows);
 
       const remainingBalance = projectSummary.reduce((sum, item) => {
-        const actualBalance = Number(item.actualBalance || 0);
-        const regularBalance = Number(item.remainingBudget || 0);
-        return sum + (actualBalance !== 0 ? actualBalance : regularBalance);
+        return sum + Number(item.actualBalance ?? item.remainingBudget ?? 0);
       }, 0);
 
       const allocationRows = projectSummary.map(item => {
         const allocation = Number(item.approvedBudget || 0);
 
         const totalRbaApproved = Number(
-          item.totalRbaApproved !== undefined ? item.totalRbaApproved : item.totalExpenses || 0
+          item.totalRbaApproved ?? 0
         );
 
         const rbaBalance = Number(
@@ -3280,24 +3279,15 @@
         }
 
         map[key].approvedBudget += Number(row.approvedBudget || 0);
-        map[key].totalRbaApproved += Number(row.totalRbaApproved || row.totalExpenses || 0);
+        map[key].totalRbaApproved += Number(row.totalRbaApproved ?? 0);
         map[key].rbaBalance += Number(row.rbaBalance || 0);
         map[key].totalOrDv += Number(row.totalOrDv || 0);
         map[key].actualBalance += Number(row.actualBalance || 0);
-        map[key].totalExpenses += Number(row.totalOrDv || row.totalExpenses || 0);
+        map[key].totalExpenses += Number(row.totalOrDv ?? row.totalExpenses ?? 0);
         map[key].dailyExpense += Number(row.dailyExpense || 0);
-        map[key].remainingBudget += Number(row.actualBalance || row.remainingBudget || 0);
+        map[key].remainingBudget += Number(row.actualBalance ?? row.remainingBudget ?? 0);
 
-        const rowKey = row.catchUpKey || getCatchUpKey({
-          project: row.project,
-          fundingSource: row.fundingSource,
-          quarter: row.quarter
-        });
-
-        const rowFiles = getUniqueCatchUpFiles(
-          (Array.isArray(row.catchUpFiles) ? row.catchUpFiles : [])
-            .concat(catchUpFilesMap[rowKey] || [])
-        );
+        const rowFiles = getCatchUpFilesForRow(row);
 
         map[key].catchUpFiles = getUniqueCatchUpFiles(
           map[key].catchUpFiles.concat(rowFiles)
@@ -4269,9 +4259,9 @@
     function getCatchUpFilesForRow(row) {
       const targetFunding = normalizeCatchUpFunding(row.fundingSource || 'All');
       const targetProject = normalizeCatchUpProject(row.project || '');
-      let files = Array.isArray(row.catchUpFiles)
-        ? row.catchUpFiles.slice()
-        : [];
+      // The live file map is authoritative. Cached row attachments may contain
+      // deleted files and must not be merged back into current file records.
+      let files = [];
 
       Object.keys(catchUpFilesMap || {}).forEach(mapKey => {
         const records = Array.isArray(catchUpFilesMap[mapKey])
